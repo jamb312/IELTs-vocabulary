@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IELTS Word Upgrade</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,#232a52 0%,#0d1020 55%,#080a14 100%);
+    color:#e9ecf8;min-height:100vh;display:flex;justify-content:center;padding:28px 16px 60px;
+  }
+  .wrap{width:min(680px,100%)}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px}
+  h1{font-size:20px;letter-spacing:.2px}
+  h1 span{color:#7d93ff}
+  .best{font-size:12px;color:#8b93b5}
+  .track{height:6px;background:#1b2039;border-radius:99px;overflow:hidden;margin-bottom:22px}
+  #bar{height:100%;width:0;background:linear-gradient(90deg,#5b7cff,#8f6cff);transition:width .35s ease}
+  .card{background:linear-gradient(180deg,#181d33,#141829);border:1px solid #262c4a;
+        border-radius:18px;padding:24px 22px;box-shadow:0 20px 50px -30px #000}
+  .meta{display:flex;justify-content:space-between;font-size:12px;color:#8b93b5;
+        letter-spacing:.5px;text-transform:uppercase;margin-bottom:16px}
+  .prompt{font-size:20px;line-height:1.55;margin-bottom:22px;font-weight:500}
+  .blank{color:#7d93ff;font-weight:700;border-bottom:2px dashed #3a4272;padding:0 6px}
+  .blank.filled{color:#2fbf71;border-bottom-color:#2fbf71;border-bottom-style:solid}
+  .opts{display:grid;gap:10px}
+  .opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;
+       border-radius:12px;background:#1d2339;border:1px solid #2a3152;color:#e9ecf8;
+       font-size:16px;cursor:pointer;transition:.15s;font-family:inherit}
+  .opt:hover:not(.done){background:#232b47;border-color:#3d4780;transform:translateY(-1px)}
+  .key{width:22px;height:22px;flex:none;display:grid;place-items:center;border-radius:6px;
+       background:#2a3152;font-size:12px;color:#9aa3c7}
+  .opt.correct{background:#12352a;border-color:#2fbf71;color:#a8f0c9}
+  .opt.correct .key{background:#2fbf71;color:#06210f}
+  .opt.wrong{background:#3a1620;border-color:#e5484d;color:#ffc9cb}
+  .opt.wrong .key{background:#e5484d;color:#2b0709}
+  .opt.done{cursor:default}
+  .fb{display:none;margin-top:18px;padding:14px 16px;border-radius:12px;
+      font-size:14.5px;line-height:1.65;color:#c9cfec}
+  .fb.show{display:block}
+  .fb.ok{background:#10251f;border:1px solid #1f5a43}
+  .fb.no{background:#25151c;border:1px solid #5a2130}
+  .fb strong{color:#fff}
+  .fb b{color:#8fa6ff}
+  .next{margin-top:18px;width:100%;padding:14px;border-radius:12px;border:0;
+        background:linear-gradient(90deg,#5b7cff,#8f6cff);color:#fff;font-size:16px;
+        font-weight:600;cursor:pointer;font-family:inherit}
+  .next:hover{filter:brightness(1.12)}
+  .end h2{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:#8b93b5}
+  .end .score{font-size:54px;font-weight:800;margin:8px 0 4px;
+    background:linear-gradient(90deg,#5b7cff,#8f6cff);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .verdict{color:#c9cfec;margin-bottom:6px;line-height:1.6}
+  h3{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:#8b93b5;margin:22px 0 10px}
+  .missed{list-style:none;display:grid;gap:10px}
+  .missed li{background:#161b2e;border:1px solid #262c4a;border-radius:12px;
+             padding:12px 14px;font-size:14px;line-height:1.55;color:#b9c0e0}
+  .missed b{color:#8fa6ff;display:block;margin-bottom:3px;font-size:15px}
+  .missed em{color:#2fbf71;font-style:normal;font-weight:700}
+  .perfect{color:#a8f0c9;font-size:14.5px;line-height:1.6}
+  .intro p{color:#c9cfec;line-height:1.7;margin-bottom:12px;font-size:15px}
+  .intro ul{color:#b9c0e0;font-size:14.5px;line-height:1.8;padding-left:20px;margin-bottom:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>IELTS <span>Word Upgrade</span></h1>
+    <div class="best" id="bestLabel"></div>
+  </header>
+  <div class="track"><div id="bar"></div></div>
+  <main id="screen"></main>
+</div>
+
+<script>
+/* ---------- QUESTION BANK ---------- */
+const BANK = [
+{w:"invest",q:"The government plans to ___ heavily in renewable energy.",c:"invest",x:["spend","pay","fund"],e:"'Invest in' is the collocation. 'Spend' needs 'on': spend money ON something."},
+{w:"pose",q:"Air pollution ___ a serious threat to public health.",c:"poses",x:["makes","gives","puts"],e:"'Pose a threat' is a fixed collocation. Also: pose a risk, pose a challenge."},
+{w:"suffer",q:"Many students ___ from a lack of confidence when speaking English.",c:"suffer",x:["feel","get","take"],e:"'Suffer from' + a problem. Extremely common in IELTS Speaking and Writing."},
+{w:"dramatically",q:"The number of cars on the road has risen ___ over the last decade.",c:"dramatically",x:["strongly","hardly","powerfully"],e:"For trends use dramatically / sharply / significantly / steadily. 'Hardly' means almost not at all — the opposite."},
+{w:"significant",q:"Traffic congestion is a ___ problem in most major cities.",c:"significant",x:["big","giant","tall"],e:"'Significant' is the academic upgrade for 'big'. Also: substantial, considerable, major."},
+{w:"damage",q:"Excessive screen time can ___ children's eyesight.",c:"damage",x:["break","injure","wound"],e:"We damage eyesight, health, the environment. 'Injure' and 'wound' are for people and body parts."},
+{w:"take action",q:"The government must ___ action to reduce air pollution.",c:"take",x:["make","do","give"],e:"'Take action' is fixed. Also: take measures, take steps."},
+{w:"tackle",q:"This essay will discuss how to ___ the problem of homelessness.",c:"tackle",x:["fight","hit","break"],e:"'Tackle a problem / issue' = deal with it. Also: address, combat, confront."},
+{w:"drawback",q:"One major ___ of online learning is the lack of face-to-face contact.",c:"drawback",x:["shortage","fault","weakness"],e:"'Drawback' = disadvantage. 'Shortage' = not enough of something. 'Fault' = a defect in a person or thing."},
+{w:"advent",q:"The ___ of the internet has transformed how we communicate.",c:"advent",x:["arrival","entrance","appearance"],e:"'The advent of' = the arrival or beginning of something important. Very useful in Writing Task 2."},
+{w:"expand",q:"Reading widely helps students ___ their vocabulary.",c:"expand",x:["grow","raise","lift"],e:"You 'expand' something you already have. 'Raise' is for levels and amounts: raise prices, raise awareness."},
+{w:"indicate",q:"The report ___ that air quality in the city is getting worse.",c:"indicates",x:["speaks","tells","informs"],e:"'Indicate that...' = show or suggest. 'Tell' needs a person: tell someone something."},
+{w:"compelling",q:"There is ___ evidence that human activity is driving climate change.",c:"compelling",x:["heavy","hard","powerful"],e:"'Compelling evidence' = very convincing. Also: overwhelming evidence, strong evidence."},
+{w:"unaware",q:"Many young people are ___ of the long-term risks of vaping.",c:"unaware",x:["unknown","unknowing","ignorant"],e:"'Unaware of' = not knowing about. 'Unknown' describes a thing, not a person. 'Ignorant of' can sound insulting."},
+{w:"impose",q:"Governments should ___ stricter laws on single-use plastics.",c:"impose",x:["place","put","give"],e:"'Impose laws / taxes / restrictions ON something'. Also: introduce, enforce."},
+{w:"accused",q:"The company was ___ of ignoring safety regulations.",c:"accused",x:["blamed","charged","criticised"],e:"'Accused OF' + -ing. 'Blamed FOR' + noun. 'Charged WITH' a crime."},
+{w:"perform",q:"Children who read regularly tend to ___ better at school.",c:"perform",x:["make","do","act"],e:"'Perform well / badly' = how successful you are. Common in IELTS Writing about education."},
+{w:"rise",q:"The cost of living has ___ sharply since 2020.",c:"risen",x:["raised","arisen","lifted"],e:"'Rise' (rise/rose/risen) has no object. 'Raise' needs an object: the government raised taxes."},
+{w:"implement",q:"The council has ___ a new policy to cut carbon emissions.",c:"implemented",x:["made","done","taken"],e:"'Implement a policy / a plan / a reform' = put it into action."},
+{w:"Generally speaking",q:"___ speaking, the benefits of urbanisation outweigh the drawbacks.",c:"Generally",x:["Commonly","Normally","Usually"],e:"'Generally speaking' introduces a general statement — a safe, natural essay opener."},
+{w:"substantial",q:"There has been a ___ increase in obesity rates over the past 20 years.",c:"substantial",x:["big","large","huge"],e:"'Substantial / significant / considerable increase' — academic collocations for IELTS Task 1 and 2."},
+{w:"establish",q:"Researchers have ___ a clear link between diet and depression.",c:"established",x:["made","built","set"],e:"'Establish a link / a connection / a relationship between A and B'."},
+{w:"widely",q:"It is ___ believed that regular exercise improves mental health.",c:"widely",x:["largely","broadly","highly"],e:"'Widely believed / widely accepted / widely used'. 'Highly' goes with likely, successful, effective."},
+{w:"root",q:"The ___ of the problem lies in a lack of government funding.",c:"root",x:["base","bottom","source"],e:"'The root of the problem' = the real, basic cause."},
+{w:"at risk",q:"Many species of coral are ___ risk of extinction.",c:"at",x:["in","on","under"],e:"'At risk of' is fixed. Compare: 'under threat', 'in danger'."},
+{w:"far-reaching",q:"The invention of the internet has had ___ consequences for the way we work.",c:"far-reaching",x:["long","wide","deep"],e:"'Far-reaching consequences / implications / effects' = affecting many things. A band-8 phrase."},
+{w:"increasingly",q:"Working from home has become ___ common in recent years.",c:"increasingly",x:["more","highly","greatly"],e:"'Increasingly + adjective' = more and more. Much more formal than 'more and more'."},
+{w:"address",q:"The government needs to ___ the issue of youth unemployment.",c:"address",x:["answer","speak","talk"],e:"'Address an issue / a problem' = deal with it. A classic band-7+ verb."},
+{w:"pressing",q:"There is a ___ need for affordable housing in major cities.",c:"pressing",x:["hard","heavy","strong"],e:"'A pressing need / issue' = urgent, must be dealt with now."},
+{w:"place",q:"Obesity ___ a huge burden on healthcare systems.",c:"places",x:["gives","sets","takes"],e:"'Place a burden / strain / pressure ON something'."},
+{w:"enhance",q:"Reading widely can greatly ___ your academic writing.",c:"enhance",x:["grow","rise","lift"],e:"'Enhance' = improve the quality of something. Collocates with: skills, performance, quality, experience."},
+{w:"carry out",q:"The study was ___ out over a period of three years.",c:"carried",x:["taken","made","done"],e:"'Carry out research / a study / a survey'. Also: conduct research."},
+{w:"contribute",q:"Air travel ___ significantly to global warming.",c:"contributes",x:["adds","gives","brings"],e:"'Contribute to' a problem = be one of its causes. Very useful in Writing Task 2."},
+{w:"outweigh",q:"In my view, the benefits of technology ___ its drawbacks.",c:"outweigh",x:["outgrow","overcome","overtake"],e:"'Outweigh' = be greater or more important than. A signature IELTS Writing phrase."},
+{w:"simplistic",q:"It is ___ to claim that all students learn in the same way.",c:"simplistic",x:["simple","easy","plain"],e:"'Simplistic' = treating a complex problem as if it were simple (negative). 'Simple' is neutral."},
+{w:"foster",q:"Group projects can ___ teamwork and communication skills.",c:"foster",x:["grow","rise","lift"],e:"'Foster' = encourage something to develop. Also collocates with creativity, innovation, a sense of community."},
+{w:"soar",q:"The demand for electric cars has ___ in recent years.",c:"soared",x:["flown","raised","lifted"],e:"'Soar' = rise very quickly. Other trend verbs: plummet, surge, rocket, decline."},
+{w:"alleviate",q:"Which word means 'to make a problem or pain less severe'?",c:"alleviate",x:["aggravate","accelerate","allocate"],e:"Alleviate = make less severe. E.g. 'alleviate poverty', 'alleviate traffic congestion'."},
+{w:"diminish",q:"Which word means 'to become gradually smaller or less'?",c:"diminish",x:["demolish","dominate","distribute"],e:"Diminish = decrease gradually. Also: decline, dwindle."},
+{w:"detrimental",q:"Which word means 'causing harm or damage'?",c:"detrimental",x:["determined","detached","deliberate"],e:"'Detrimental TO something' = harmful to it. E.g. 'Excessive screen time is detrimental to children's health.'"},
+{w:"prevalent",q:"Which word means 'common or widespread in a particular place or time'?",c:"prevalent",x:["previous","preventive","permanent"],e:"'Prevalent' = widespread. E.g. 'Obesity is increasingly prevalent among young people.'"},
+{w:"inadequate",q:"Which word means 'not good enough or not enough'?",c:"inadequate",x:["inaccurate","inactive","inappropriate"],e:"Inadequate = not sufficient. E.g. 'Inadequate funding has slowed the project.'"},
+{w:"curb",q:"Which word means 'to control or limit something harmful'?",c:"curb",x:["cure","curve","curl"],e:"'Curb' = restrain. E.g. 'Governments must curb carbon emissions.' Also: tackle, combat, reduce."},
+{w:"exacerbate",q:"Which word means 'to make a bad situation worse'?",c:"exacerbate",x:["exaggerate","execute","excavate"],e:"Exacerbate = make worse. It is the opposite of alleviate. E.g. 'Cutting public transport would exacerbate congestion.'"},
+{w:"advocate",q:"Which word means 'to publicly support or recommend something'?",c:"advocate",x:["advertise","advise","advance"],e:"'Advocate' + noun or -ing: 'Many experts advocate banning cars from city centres.'"},
+{w:"resilience",q:"Which word means 'the ability to recover quickly from difficulties'?",c:"resilience",x:["resistance","reluctance","reliance"],e:"Resilience = the ability to bounce back. E.g. 'Children need resilience to cope with failure.'"},
+{w:"scarcity",q:"Which word means 'a situation where there is not enough of something'?",c:"scarcity",x:["scandal","scenario","scheme"],e:"'Scarcity of' — e.g. 'the scarcity of clean water'. Also: shortage, lack."},
+{w:"optimise",q:"Which word means 'to make something as effective as possible'?",c:"optimise",x:["organise","overcome","obtain"],e:"Optimise = get the best possible result from something. E.g. 'optimise energy use'."},
+{w:"draw",q:"Which verb collocates with 'a conclusion'?",c:"draw",x:["do","make","put"],e:"'Draw a conclusion' (or 'reach a conclusion'). Standard in academic writing."},
+{w:"take",q:"Which verb collocates with 'measures'?",c:"take",x:["do","make","give"],e:"'Take measures / take steps / take action' to solve a problem."},
+{w:"heavy",q:"Which adjective collocates with 'rainfall'?",c:"heavy",x:["strong","big","hard"],e:"'Heavy rainfall / heavy traffic / heavy burden'. 'Strong' goes with wind, evidence, argument."},
+{w:"raise",q:"Which noun collocates with the verb 'raise'?",c:"awareness",x:["knowledge","information","understanding"],e:"'Raise awareness OF something'. You can 'increase knowledge', but you 'raise awareness'."},
+{w:"severe",q:"Which adjective collocates with 'damage'?",c:"severe",x:["strong","hard","heavy"],e:"'Severe damage / severe weather / severe consequences'. Also: extensive damage."}
+];
+
+/* ---------- STATE ---------- */
+const ROUND_SIZE = 12;
+const BEST_KEY = "ieltsWordUpgradeBest";
+const screen = document.getElementById("screen");
+const bar = document.getElementById("bar");
+const bestLabel = document.getElementById("bestLabel");
+
+let deck = [], idx = 0, score = 0, streak = 0, missed = [], answered = false;
+let bestEver = 0;
+try { bestEver = +(localStorage.getItem(BEST_KEY) || 0); } catch (e) {}
+
+const shuffle = a => {
+  a = [...a];
+  for (let j = a.length - 1; j > 0; j--) {
+    const k = Math.floor(Math.random() * (j + 1));
+    [a[j], a[k]] = [a[k], a[j]];
+  }
+  return a;
+};
+
+function updateBestLabel() {
+  bestLabel.textContent = bestEver ? "Best: " + bestEver + "/" + ROUND_SIZE : "";
+}
+updateBestLabel();
+
+/* ---------- INTRO ---------- */
+function showIntro() {
+  bar.style.width = "0%";
+  screen.innerHTML = `
+    <div class="card intro">
+      <div class="meta"><span>Band 6 → Band 7+</span><span>${ROUND_SIZE} questions</span></div>
+      <p>Every question asks you to choose the word a band 7+ writer would actually use — not just a word that is grammatically possible.</p>
+      <ul>
+        <li>Collocations (which words naturally go together)</li>
+        <li>Academic upgrades for common words</li>
+        <li>Register — formal vs. everyday English</li>
+      </ul>
+      <p>You get an explanation after every answer, and a review list at the end.</p>
+      <button class="next" id="startBtn">Start round</button>
+    </div>`;
+  document.getElementById("startBtn").onclick = startGame;
+}
+
+/* ---------- GAME ---------- */
+function startGame() {
+  deck = shuffle(BANK).slice(0, ROUND_SIZE).map(q => ({
+    ...q,
+    opts: shuffle([q.c, ...q.x])
+  }));
+  idx = 0; score = 0; streak = 0; missed = [];
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = deck[idx];
+  answered = false;
+  bar.style.width = (idx / deck.length * 100) + "%";
+
+  const isSentence = q.q.includes("___");
+  const [before, after] = isSentence ? q.q.split("___") : [q.q, ""];
+
+  const promptHTML = isSentence
+    ? before + '<span class="blank" id="blank">______</span>' + (after || "")
+    : q.q;
+
+  screen.innerHTML = `
+    <div class="card">
+      <div class="meta">
+        <span>Question ${idx + 1} of ${deck.length}</span>
+        <span>Score ${score} · Streak ${streak}</span>
+      </div>
+      <p class="prompt">${promptHTML}</p>
+      <div class="opts" id="opts">
+        ${q.opts.map((o, n) =>
+          `<button class="opt" data-n="${n}"><span class="key">${n + 1}</span>${o}</button>`
+        ).join("")}
+      </div>
+      <div class="fb" id="fb"></div>
+      <button class="next" id="next" style="display:none">Next →</button>
+    </div>`;
+
+  document.querySelectorAll(".opt").forEach(b => {
+    b.onclick = () => choose(+b.dataset.n);
+  });
+  document.getElementById("next").onclick = nextQuestion;
+}
+
+function choose(n) {
+  if (answered) return;
+  answered = true;
+  const q = deck[idx];
+  const chosen = q.opts[n];
+  const correct = chosen === q.c;
+
+  document.querySelectorAll(".opt").forEach(b => {
+    const val = q.opts[+b.dataset.n];
+    b.classList.add("done");
+    if (val === q.c) b.classList.add("correct");
+    else if (+b.dataset.n === n) b.classList.add("wrong");
+  });
+
+  const blank = document.getElementById("blank");
+  if (blank) {
+    blank.textContent = q.c;
+    blank.classList.add("filled");
+  }
+
+  if (correct) { score++; streak++; }
+  else { streak = 0; missed.push(q); }
+
+  const fb = document.getElementById("fb");
+  fb.className = "fb show " + (correct ? "ok" : "no");
+  fb.innerHTML = `<strong>${correct ? "Correct" : "Not quite"}</strong> — <b>${q.c}</b>` +
+    (correct ? "" : ` (you chose “${chosen}”)`) + `<br>${q.e}`;
+
+  const next = document.getElementById("next");
+  next.style.display = "block";
+  next.textContent = idx === deck.length - 1 ? "See results →" : "Next →";
+  next.focus();
+}
+
+function nextQuestion() {
+  idx++;
+  if (idx >= deck.length) endGame();
+  else renderQuestion();
+}
+
+function endGame() {
+  bar.style.width = "100%";
+  const pct = Math.round(score / deck.length * 100);
+
+  if (pct > bestEver) {
+    bestEver = pct;
+    try { localStorage.setItem(BEST_KEY, bestEver); } catch (e) {}
+    updateBestLabel();
+  }
+
+  let verdict;
+  if (pct >= 90) verdict = "Outstanding — this is band 7.5+ vocabulary control.";
+  else if (pct >= 70) verdict = "Solid work — you're moving beyond band 6.";
+  else if (pct >= 50) verdict = "Good start. The words below need one more look.";
+  else verdict = "No worries — repetition is how these stick. Go again.";
+
+  const reviewHTML = missed.length
+    ? `<h3>Words to review</h3>
+       <ul class="missed">
+         ${missed.map(m => `<li><b>${m.w}</b><span>${
+           m.q.includes("___")
+             ? m.q.replace("___", `<em>${m.c}</em>`)
+             : `Answer: <em>${m.c}</em>`
+         }</span></li>`).join("")}
+       </ul>`
+    : `<p class="perfect">No mistakes this round. The questions shuffle every time — try to beat it again.</p>`;
+
+  screen.innerHTML = `
+    <div class="card end">
+      <h2>Round complete</h2>
+      <div class="score">${score}/${deck.length}</div>
+      <p class="verdict">${verdict}</p>
+      ${reviewHTML}
+      <button class="next" id="again">Play another round</button>
+    </div>`;
+  document.getElementById("again").onclick = startGame;
+  bar.style.width = "0%";
+}
+
+/* ---------- KEYBOARD ---------- */
+document.addEventListener("keydown", e => {
+  const opts = document.querySelectorAll(".opt");
+  if (opts.length && !answered && e.key >= "1" && e.key <= "4") {
+    const i = +e.key - 1;
+    if (i < opts.length) choose(i);
+  } else if (answered && (e.key === "Enter" || e.key === " ")) {
+    const next = document.getElementById("next");
+    if (next && next.style.display !== "none") { e.preventDefault(); nextQuestion(); }
+  } else if (e.key === "Enter" && document.getElementById("startBtn")) {
+    startGame();
+  }
+});
+
+showIntro();
+</script>
+</body>
+</html>
